@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -33,9 +35,34 @@ export class ProductivityController {
     return this.productivityService.endSession(req.user.userId);
   }
 
+  @Get('session/active')
+  getActiveSession(@Req() req: IRequestUser) {
+    return this.productivityService.getActiveSession(req.user.userId);
+  }
+
+  @Get('sessions')
+  getSessions(@Req() req: IRequestUser) {
+    return this.productivityService.getSessions(req.user.userId);
+  }
+
+  @Get('blocklist')
+  getBlocklist(@Req() req: IRequestUser) {
+    return this.productivityService.getBlocklist(req.user.userId);
+  }
+
   @Post('blocklist')
   addBlockedSite(@Req() req: IRequestUser, @Body() dto: AddBlocklistDto) {
     return this.productivityService.addBlockedSite(req.user.userId, dto);
+  }
+
+  @Delete('blocklist/:id')
+  deleteBlockedSite(@Req() req: IRequestUser, @Param('id') id: string) {
+    return this.productivityService.deleteBlockedSite(req.user.userId, id);
+  }
+
+  @Get('logs')
+  getLogs(@Req() req: IRequestUser) {
+    return this.productivityService.getLogs(req.user.userId);
   }
 
   @Post('logs')

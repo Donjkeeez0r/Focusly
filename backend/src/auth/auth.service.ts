@@ -16,14 +16,29 @@ export class AuthService {
     avatar: string;
   }) {
     let existingUser = await this.prismaService.user.findUnique({
-      where: { email: googleUser.email },
+      where: { googleId: googleUser.googleId },
     });
+
+    if (!existingUser) {
+      existingUser = await this.prismaService.user.findUnique({
+        where: { email: googleUser.email },
+      });
+    }
 
     if (!existingUser) {
       existingUser = await this.prismaService.user.create({
         data: {
-          id: googleUser.googleId,
+          googleId: googleUser.googleId,
           email: googleUser.email,
+          name: googleUser.name,
+          avatar: googleUser.avatar,
+        },
+      });
+    } else if (!existingUser.googleId) {
+      existingUser = await this.prismaService.user.update({
+        where: { id: existingUser.id },
+        data: {
+          googleId: googleUser.googleId,
           name: googleUser.name,
           avatar: googleUser.avatar,
         },
@@ -31,6 +46,18 @@ export class AuthService {
     }
 
     return this.generateToken(existingUser);
+  }
+
+  getMe(userId: string) {
+    return this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+      },
+    });
   }
 
   private generateToken(user: { id: string; email: string }) {

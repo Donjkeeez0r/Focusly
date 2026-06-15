@@ -38,6 +38,30 @@ export class ProductivityService {
     });
   }
 
+  getActiveSession(userId: string) {
+    return this.prismaService.session.findFirst({
+      where: { userId, endTime: null },
+    });
+  }
+
+  getSessions(userId: string) {
+    return this.prismaService.session.findMany({
+      where: { userId },
+      orderBy: { startTime: 'desc' },
+      take: 50,
+    });
+  }
+
+  getBlocklist(userId: string) {
+    return this.prismaService.blockList.findMany({
+      where: { userId },
+      include: {
+        category: true,
+      },
+      orderBy: { url: 'asc' },
+    });
+  }
+
   async addBlockedSite(userId: string, dto: AddBlocklistDto) {
     const site = await this.prismaService.blockList.create({
       data: { userId, url: dto.url, categoryId: dto.categoryId },
@@ -48,6 +72,38 @@ export class ProductivityService {
     await this.cacheManager.del(cacheKey);
 
     return site;
+  }
+
+  async deleteBlockedSite(userId: string, id: string) {
+    const site = await this.prismaService.blockList.findFirst({
+      where: { id, userId },
+    });
+
+    if (!site) {
+      throw new NotFoundException('Сайт в блоклисте не найден!');
+    }
+
+    await this.prismaService.blockList.delete({
+      where: { id },
+    });
+
+    const cacheKey = `user:${userId}:blocklist`;
+
+    await this.cacheManager.del(cacheKey);
+
+    return { message: 'Сайт удален из блоклиста!' };
+  }
+
+  getLogs(userId: string) {
+    return this.prismaService.timeLog.findMany({
+      where: { userId },
+      include: {
+        category: true,
+        session: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
   }
 
   async saveTimeLogs(userId: string, dto: SaveLogsDto) {

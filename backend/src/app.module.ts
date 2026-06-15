@@ -10,6 +10,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AiModule } from './ai/ai.module';
 import KeyvRedis from '@keyv/redis';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import KeyvRedis from '@keyv/redis';
     PrismaModule,
     ProductivityModule,
     StatsModule,
+    CategoriesModule,
     CacheModule.register({
       stores: [new KeyvRedis('redis://localhost:6379')],
       isGlobal: true,
